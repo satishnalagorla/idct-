@@ -11,4 +11,6 @@ image and video compression standards such as JPEG, MPEG,  to restore image bloc
 their compressed forms.
 The image can be reconstructed from the DCT (u,v) by evaluating the (inverse 
 DCT) product of the matrix: 
+
+
 IDCT = C^T (DCT) C
