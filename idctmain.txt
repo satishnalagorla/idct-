@@ -137,7 +137,7 @@ adder12s adder12s1( // addition all results 1 to 8 here
  .sum(sum1) 
  ) ; 
  
-dctreg2x8xn #(11) dctreg1(  // temporarily storing sum
+idctreg2x8xn #(11) dctreg1(  // temporarily storing sum
  .clk(clk), 
  .din(sum1[14:4]), 
  .wa(cnt2_reg[2:0]), 
