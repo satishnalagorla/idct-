@@ -1,0 +1,257 @@
+
+module multi_8_8( clk, n1, n2,result  ) ; 
+input clk ; 
+input [7:0] n1 ; 
+input [7:0] n2 ; 
+output [15:0] result ; 
+wire n1orn2z ; // Declare combinational 
+wire [7:0] p1 ; // circuit signals. 
+wire [7:0] p2 ; 
+wire [7:0] p3 ; 
+wire [7:0] p4 ; 
+wire [7:0] p5 ; 
+wire [7:0] p6 ; 
+wire [7:0] p7 ; 
+wire [7:0] p8 ; 
+wire [4:0] s11a ; 
+wire [4:0] s12a ; 
+wire [4:0] s13a ; 
+wire [4:0] s14a ; 
+wire [4:0] s11b ; 
+wire [4:0] s12b ; 
+wire [4:0] s13b ; 
+wire [4:0] s14b ; 
+wire [9:0] s11 ; 
+wire [9:0] s12 ; 
+wire [9:0] s13 ; 
+wire [9:0] s14 ; 
+wire [5:0] s21a ; 
+wire [5:0] s22a ; 
+wire [5:0] s21b ; 
+wire [5:0] s22b ;
+wire [11:0] s21 ; 
+wire [11:0] s22 ; 
+wire [6:0] s31a ; 
+wire [6:0] s31b ; 
+wire [14:0] s31 ; 
+wire res_sign ; 
+wire [15:0] res ;
+reg [7:0] n1_mag ; // Declare all registers. 
+reg [7:0] n2_mag ; 
+reg [7:0] p1_reg1 ; 
+reg [7:0] p2_reg1 ; 
+reg [7:0] p3_reg1 ; 
+reg [7:0] p4_reg1 ; 
+reg [7:0] p5_reg1 ; 
+reg [7:0] p6_reg1 ; 
+reg [7:0] p7_reg1 ; 
+reg [7:0] p8_reg1 ; 
+reg [4:0] s11a_reg2 ; 
+reg [4:0] s12a_reg2 ; 
+reg [4:0] s13a_reg2 ; 
+reg [4:0] s14a_reg2 ; 
+reg n1_reg1; 
+reg n1_reg2; 
+reg n1_reg3; 
+reg n1_reg4; 
+reg n1_reg5; 
+reg n1_reg6; 
+reg n1_reg7; 
+reg n2_reg1; 
+reg n2_reg2; 
+reg n2_reg3; 
+reg n2_reg4; 
+reg n2_reg5; 
+reg n2_reg6; 
+reg n2_reg7; 
+reg n1orn2z_reg1 ; 
+reg n1orn2z_reg2 ; 
+reg n1orn2z_reg3 ; 
+reg n1orn2z_reg4 ; 
+reg n1orn2z_reg5 ; 
+reg n1orn2z_reg6 ; 
+reg n1orn2z_reg7 ; 
+reg [7:0] p1_reg2 ; 
+reg [7:0] p2_reg2 ; 
+reg [7:0] p3_reg2 ;
+reg [7:0] p4_reg2 ; 
+reg [7:0] p5_reg2 ; 
+reg [7:0] p6_reg2 ; 
+reg [7:0] p7_reg2 ; 
+reg [7:0] p8_reg2 ; 
+reg [9:0] s11_reg3 ; 
+reg [9:0] s12_reg3 ; 
+reg [9:0] s13_reg3 ; 
+reg [9:0] s14_reg3 ; 
+reg [9:0] s11_reg4 ; 
+reg [9:0] s12_reg4 ; 
+reg [9:0] s13_reg4 ; 
+reg [9:0] s14_reg4 ; 
+reg [5:0] s21a_reg4 ; 
+reg [5:0] s22a_reg4 ; 
+reg [11:0] s21_reg5 ; 
+reg [11:0] s22_reg5 ; 
+reg [11:0] s21_reg6 ; 
+reg [11:0] s22_reg6 ; 
+reg [6:0] s31a_reg6 ; 
+reg [14:0] s31_reg7 ; 
+reg [15:0] result ; 
+always @(n1) 
+begin 
+if(n1[7] == 1'b0) 
+n1_mag = n1[7:0] ; 
+else 
+n1_mag = ~n1[7:0] + 1 ; // Evaluate twos complement. 
+end 
+always @(n2) 
+begin 
+if(n2[7] == 1'b0) 
+n2_mag = n2[7:0] ; 
+else 
+n2_mag = ~n2[7:0] + 1 ; // Evaluate twos complement. 
+end 
+assign n1orn2z = ((n1 == 8'b0)||(n2 == 7'b0)) ?1'b1:1'b0 ; 
+ // If n1 or n2 is zero, make final result +0. 
+assign p1 = n1_mag[7:0] & {8{n2_mag[0]}}; 
+// Compute the partial products. Multiply n1 by n2 bit '0', etc. 
+assign p2 = n1_mag[7:0] & {8{n2_mag[1]}} ; 
+assign p3 = n1_mag[7:0] & {8{n2_mag[2]}} ; 
+assign p4 = n1_mag[7:0] & {8{n2_mag[3]}} ;
+assign p5 = n1_mag[7:0] & {8{n2_mag[4]}} ; 
+assign p6 = n1_mag[7:0] & {8{n2_mag[5]}} ; 
+assign p7 = n1_mag[7:0] & {8{n2_mag[6]}} ; 
+assign p8 = n1_mag[7:0] & {8{n2_mag[7]}} ; 
+always @ (posedge clk) // These are the first pipeline registers at clk (1) stage. 
+begin 
+p1_reg1 <= p1 ; 
+p2_reg1 <= p2 ; 
+p3_reg1 <= p3 ; 
+p4_reg1 <= p4 ; 
+p5_reg1 <= p5 ; 
+p6_reg1 <= p6 ; 
+p7_reg1 <= p7 ; 
+p8_reg1 <= p8 ; 
+n1_reg1 <= n1[7] ; // Preserve sign bits and the status 
+n2_reg1 <= n2[7] ; 
+n1orn2z_reg1 <= n1orn2z ; // whether result is zero or not 
+end 
+//p1_reg1, etc. means p1, etc. are registered at positive edge of clk (1), clk (2), etc. 
+assign s11a[4:0] = p1_reg1[4:1] + p2_reg1[3:0] ; 
+ // LSBs are added here after left shifting 
+ // p1_reg1 by one bit. 
+assign s12a[4:0] = p3_reg1[4:1] + p4_reg1[3:0] ; 
+assign s13a[4:0] = p5_reg1[4:1] + p6_reg1[3:0] ; 
+assign s14a[4:0] = p7_reg1[4:1] + p8_reg1[3:0] ; 
+ // Note: the left shifts are taken care of 
+ // for p1, p3, p5 and p7. 
+ // p1_reg1[0], etc. will be processed at the clk (2). 
+ // s11a[4], etc. are the carry bits. 
+always @ (posedge clk) // These are the second pipeline registers @ clk (2). 
+begin 
+s11a_reg2 <= s11a ; // Store LSB partial sums. 
+s12a_reg2 <= s12a ; 
+s13a_reg2 <= s13a ; 
+s14a_reg2 <= s14a ; 
+p1_reg2[7:5] <= p1_reg1[7:5] ; // Store MSB of partial products. 
+p2_reg2[7:4] <= p2_reg1[7:4] ; 
+p3_reg2[7:5] <= p3_reg1[7:5] ; 
+p4_reg2[7:4] <= p4_reg1[7:4] ; 
+p5_reg2[7:5] <= p5_reg1[7:5] ; 
+p6_reg2[7:4] <= p6_reg1[7:4] ; 
+p7_reg2[7:5] <= p7_reg1[7:5] ; 
+p8_reg2[7:4] <= p8_reg1[7:4] ; 
+p1_reg2[0] <= p1_reg1[0] ; // Store '0' th bit since 
+p3_reg2[0] <= p3_reg1[0] ; //it is not yet processed. 
+p5_reg2[0] <= p5_reg1[0] ; 
+p7_reg2[0] <= p7_reg1[0] ; 
+n1_reg2 <= n1_reg1 ; // Also store sign bits and zero status. 
+n2_reg2 <= n2_reg1 ; 
+n1orn2z_reg2 <= n1orn2z_reg1 ; 
+end 
+// MSB is added here along with carry. 
+assign s11b[4:0] = {1'b0, p1_reg2[7:5]} + p2_reg2[7:4] + s11a_reg2[4] ; 
+assign s12b[4:0] = {1'b0, p3_reg2[7:5]} + p4_reg2[7:4] + s12a_reg2[4] ; 
+assign s13b[4:0] = {1'b0, p5_reg2[7:5]} + p6_reg2[7:4] + s13a_reg2[4] ; 
+assign s14b[4:0] = {1'b0, p7_reg2[7:5]} + p8_reg2[7:4] + s14a_reg2[4] ; 
+ // MSBs & LSBs are concatenated here. 
+assign s11[9:0] = {s11b, s11a_reg2[3:0], p1_reg2[0]} ; 
+ // Concatenate MSB, LSB, '0' th bit respectively. 
+assign s12[9:0] = {s12b, s12a_reg2[3:0], p3_reg2[0]} ; 
+assign s13[9:0] = {s13b, s13a_reg2[3:0], p5_reg2[0]} ; 
+assign s14[9:0] = {s14b, s14a_reg2[3:0], p7_reg2[0]} ; 
+always @ (posedge clk) 
+ // These are the third pipeline registers @ clk (3). First stage results. 
+begin 
+s11_reg3 <= s11; // Store for further processing. 
+s12_reg3 <= s12; 
+s13_reg3 <= s13; 
+s14_reg3 <= s14; 
+n1_reg3 <= n1_reg2; 
+n2_reg3 <= n2_reg2; 
+n1orn2z_reg3 <= n1orn2z_reg2; 
+end 
+assign s21a[5:0] = s11_reg3[6:2] + s12_reg3[4:0] ; // s21a[7] is the carry. 
+assign s22a[5:0] = s13_reg3[6:2] + s14_reg3[4:0] ; // LSB sum, 2nd stage. 
+always @ (posedge clk) // These are the fourth pipeline registers @ clk (4). 
+begin 
+s11_reg4[9:7] <= s11_reg3[9:7] ; // Store bits not yet processed. 
+s11_reg4[1:0] <= s11_reg3[1:0] ; 
+s12_reg4[9:5] <= s12_reg3[9:5] ; 
+s13_reg4[9:7] <= s13_reg3[9:7] ; 
+s13_reg4[1:0] <= s13_reg3[1:0] ; 
+s14_reg4[9:5] <= s14_reg3[9:5] ; 
+s21a_reg4 <= s21a ; 
+s22a_reg4 <= s22a ; 
+n1_reg4 <= n1_reg3 ; 
+n2_reg4 <= n2_reg3 ; 
+n1orn2z_reg4 <= n1orn2z_reg3 ; 
+end 
+// Add second stage MSBs with carry. 
+assign s21b[5:0] = {2'b0, s11_reg4[9:7]} +s12_reg4[9:5] + s21a_reg4[5]; 
+assign s22b[5:0] = {2'b0, s13_reg4[9:7]} +s14_reg4[9:5] + s22a_reg4[5]; 
+assign s21[11:0] = {s21b[4:0], s21a_reg4[4:0], s11_reg4[1:0]} ; 
+ // {MSB, LSB, [1:0]} 
+// Result will never effect s21b[6], which is always 0. 
+assign s22[11:0] = {s22b[4:0], s22a_reg4[4:0], s13_reg4[1:0]} ; 
+always @ (posedge clk) // These are the fifth pipeline registers @ clk (5). 
+begin 
+s21_reg5 <= s21 ; // Store for further processing. 
+s22_reg5 <= s22 ; 
+n1_reg5 <= n1_reg4 ; 
+n2_reg5 <= n2_reg4 ; 
+n1orn2z_reg5 <= n1orn2z_reg4 ; 
+end 
+assign s31a[6:0] = s21_reg5[9:4] + s22_reg5[5:0] ; 
+ // Third stage LSB is computed here. 
+always @ (posedge clk) // These are the sixth pipeline registers @ clk (6). 
+begin 
+s21_reg6 [11:10] <= s21_reg5[11:10] ; // Preserve MSBs. 
+s22_reg6 [11:6] <= s22_reg5[11:6] ; 
+s21_reg6 [3:0] <= s21_reg5[3:0] ; 
+s31a_reg6 <= s31a ; //Third stage LSB is registered here. 
+n1_reg6 <= n1_reg5 ; 
+n2_reg6 <= n2_reg5 ; 
+n1orn2z_reg6<= n1orn2z_reg5 ; 
+end 
+assign s31b[6:0] = {4'b0, s21_reg6[11:10]} + s22_reg6[11:6] + s31a_reg6[6] ; 
+ // Third stage MSB is computed here. 
+assign s31[14:0] = {s31b[4 :0], s31a_reg6[5:0], s21_reg6[3:0]} ; 
+ // Put MSB, LSB and [3:0] bits together. 
+// Note that the third stage result will never effect s31b[6:5], which is always 0. 
+always @ (posedge clk) // These are the seventh pipeline registers @ clk (7). 
+begin 
+n1_reg7 <= n1_reg6 ; // Store intermediate results. 
+n2_reg7 <= n2_reg6 ; 
+s31_reg7 <= s31 ; 
+n1orn2z_reg7 <= n1orn2z_reg6 ; 
+end 
+assign res_sign = n1_reg7^n2_reg7 ; // "1" means a -ve no. 
+assign res[15:0] = (res_sign ) ? {1'b1, (~s31_reg7 + 1'b1)}:{1'b0, s31_reg7} ; 
+always @ (posedge clk) // This is the eighth pipeline register registered @ clk (8). 
+begin 
+if (n1orn2z_reg7 == 1'b1) 
+result[15:0] <= 16'b0 ; 
+else 
+result[15:0] <= res ; // This is the final result (product of two 
+ // numbers) in twos complement form. 
+end 
