@@ -1,4 +1,3 @@
-
 module idct_main( // Declare the design module 
  pci_clk, // and its inputs/outputs. 
  clk, 
@@ -54,12 +53,19 @@ wire [10:0] qr4 ;
 wire [10:0] qr5 ; 
 wire [10:0] qr6 ; 
 wire [10:0] qr7 ; 
-wire [5:0] cnt1_reg ; 
+wire [18:0]res1 ; 
+wire [18:0]res2 ; 
+wire [18:0]res3 ; 
+wire [18:0]res4 ; 
+wire [18:0]res5 ; 
+wire [18:0]res6 ; 
+wire [18:0]res7 ; 
+wire [18:0]res8 ; 
+ wire [5:0] cnt1_reg ; 
 wire [2:0] cnt2_reg ; 
 wire [2:0] cnt3_reg ; 
-wire [5:0] cnt4_reg ; 
 wire [7:0] qout ; 
-dual_ram dut( .clk(clk), 
+dual_ram dut( .clk(clk), // the inverse quantized output will be given to dual ram 
  .pci_clk(pci_clk), 
  .rnw(rnw), 
  .be(be), 
@@ -69,78 +75,60 @@ dual_ram dut( .clk(clk),
  .din_valid(din_valid), 
  .do(do) 
  ); 
-// Dual RAM has two pipeline registers, one after "ram_rc.v" and the other at 
-// the output of dualram.v. 
-/* 
-The following module is a ROM storing 2C and 2CT
- (two times C/CT
- in order to 
-improve the accuracy). C and CT
- are accessed simultaneously. Both require row 
-accesses for the computation of iDCT. 
-*/ 
-dual_port_rom r1( .clk(clk), 
+
+dual_port_rom r1( .clk(clk),  // here stored c matrix and c*T matrix
  .addr1(cnt1_reg[5:3]), 
  .addr2(cnt3_reg[2:0]), 
  .dout1(d1), 
  .dout2(d2) 
  ) ; 
-/* 
- ROM (romc.v) also has two pipeline registers, to keep pace with "dualram". 
-"addr1" and "addr2" are for fetching C and CT
- matrices. C is used in the first stage 
-multiplication, u11-u18, while CT
- is used in second stage multiplication, u21-u28. 
-CX is computed using the following eight multipliers. "do" is the image input, 
-"X" and "d1", is the C input. "do" is unsigned, while "d1" is in twos complement. 
-"result" is in twos complement. 
-*/ 
-multi_8_8 u11( .clk(clk), 
+
+multi_8_8 u11( .clk(clk),  // (c transpose * quantized input) multiplication
  .n1(do[63:56]), 
  .n2(d1[63:56]), 
- .result(result1) //16-bit signed 
+ .result(result1)
  ) ; 
 multi_8_8 u12( .clk(clk), 
  .n1(do[55:48]), 
  .n2(d1[55:48]), 
- .result(result2) //16-bit signed 
+ .result(result2) 
  ) ;
  multi_8_8 u13( .clk(clk), 
  .n1(do[47:40]), 
  .n2(d1[47:40]), 
- .result(result3) //16-bit signed 
+ .result(result3)  
  ) ; 
  multi_8_8 u14( .clk(clk), 
  .n1(do[39:32]), 
  .n2(d1[39:32]), 
- .result(result4) //16-bit signed 
+ .result(result4) 
  ) ; 
  multi_8_8 u15( .clk(clk), 
  .n1(do[31:24]), 
  .n2(d1[31:24]), 
- .result(result5) //16-bit signed 
+ .result(result5) 
  ) ; 
  multi_8_8 u16( .clk(clk), 
  .n1(do[23:16]), 
  .n2(d1[23:16]), 
- .result(result6) //16-bit signed 
+ .result(result6)
  ) ; 
 multi_8_8 u17( .clk(clk), 
  .n1(do[15:8]), 
  .n2(d1[15:8]), 
- .result(result7) //16-bit signed 
+ .result(result7) 
  ) ; 
 multi_8_8 u18( .clk(clk), 
  .n1(do[7:0]), 
  .n2(d1[7:0]), 
- .result(result8) //16-bit signed 
+ .result(result8)
  ) ; 
-// Partial products of CX are added here. 
-adder12s adder12s1( 
+ 
+adder12s adder12s1( // addition all results 1 to 8 here
  .clk(clk), 
- .n0(result1[15:4]), // 12-bit signed Ex.: (156).0010 
- .n1(result2[15:4]), // Five pipeline stages - output 
- .n2(result3[15:4]), // since it is registered in the  
+ .n0(result1[15:4]), 
+ .n1(result2[15:4]),  
+ .n2(result3[15:4]), 
  .n3(result4[15:4]), 
  .n4(result5[15:4]), 
  .n5(result6[15:4]), 
@@ -148,66 +136,64 @@ adder12s adder12s1(
  .n7(result8[15:4]), 
  .sum(sum1) 
  ) ; 
- // Three stage addition means 3 bits more. 
-// Therefore, sum1[14:0] is 15-bit signed. 
  
-dctreg2x8xn #(11) dctreg1( // Partial product registers, p0-p7. 
+dctreg2x8xn #(11) dctreg1(  // temporarily storing sum
  .clk(clk), 
  .din(sum1[14:4]), 
  .wa(cnt2_reg[2:0]), 
  .enreg(encnt2), 
- .qr0(qr0), // This is "p0", 
- .qr1(qr1), // "p1", etc. 
+ .qr0(qr0), 
+ .qr1(qr1), 
  .qr2(qr2), 
  .qr3(qr3), 
  .qr4(qr4), 
  .qr5(qr5), 
  .qr6(qr6), 
- .qr7(qr7) // "p7", 11-bit signed 
+ .qr7(qr7) 
  ); 
-mult11s_8s u21( .clk(clk), 
+mult11s_8s u21( .clk(clk), // 2nd step multiplication (c matrix * sum) 
  .n1(qr0), 
- .n2(d2[63:56]), // 8-bit signed CT
- .result(res1) // 19-bit signed, [18:0] 
+ .n2(d2[63:56]), 
+ .result(res1) 
  ) ; 
 mult11s_8s u22( .clk(clk), 
- .n1(qr1), // 11-bit signed - Partial sum of product of CX 
+ .n1(qr1),  
  .n2(d2[55:48]), 
  .result(res2) 
 ) ; 
 mult11s_8s u23( .clk(clk), 
- .n1(qr2), // 11-bit signed - Partial sum of product of CX 
+ .n1(qr2),  
  .n2(d2[47:40]), 
  .result(res3) 
  ) ; 
 mult11s_8s u24( .clk(clk), 
- .n1(qr3), // 11-bit signed - Partial sum of product of CX 
+ .n1(qr3), 
  .n2(d2[39:32]), 
  .result (res4) 
  ) ; 
 mult11s_8s u25( .clk(clk), 
- .n1(qr4), // 11-bit signed - Partial sum of product of CX 
+ .n1(qr4), 
  .n2(d2[31:24]), 
  .result(res5) 
  ) ;
  mult11s_8s u26( .clk(clk), 
- .n1(qr5), // 11-bit signed - Partial sum of product of CX 
+ .n1(qr5), 
  .n2(d2[23:16]), 
  .result(res6) 
  ) ; 
 mult11s_8s u27( .clk(clk), 
- .n1(qr6), // 11-bit signed - Partial sum of product of CX 
+ .n1(qr6), 
  .n2(d2[15:8]), 
  .result(res7) 
  ) ; 
 mult11s_8s u28( .clk(clk), 
- .n1(qr7), // 11-bit signed - Partial sum of product, CX 
- .n2(d2[7:0]), // 8-bit signed 
- .result(res8) // 19-bit signed 
+ .n1(qr7), 
+ .n2(d2[7:0]), 
+ .result(res8)  
  ) ; 
-// Above multiplied results are added as follows: 
-adder14s adder14sr1( .clk(clk), 
- .n0(res1[18:5]), // 14-bit signed 
+ 
+adder14s adder14sr1( .clk(clk),  // here adding all result 1to 8 and the output 8 bit input image
+ .n0(res1[18:5]), 
  .n1(res2[18:5]), 
  .n2(res3[18:5]), 
  .n3(res4[18:5]), 
@@ -215,22 +201,20 @@ adder14s adder14sr1( .clk(clk),
  .n5(res6[18:5]), 
  .n6(res7[18:5]), 
  .n7(res8[18:5]), 
- .sum(idct[7:0]) 
+ .sum(dct[7:0]) 
  // 12-bit signed, [7:0] - This is the DCT output. 
- ) ;
-llowing is the DCTQ Controller. 
-dctq_controller r2( .clk(clk), 
+ ) ; 
+idct_controller r2( .clk(clk), 
  .reset_n(reset_n), 
  .start(start), 
  .hold(hold), 
  .ready(ready), 
  .rnw(rnw), 
- .dctq_valid(dctq_valid), 
+ .idct_valid(idct_valid), 
  .encnt2(encnt2), 
  .cnt1_reg(cnt1_reg), 
  .cnt2_reg(cnt2_reg), 
  .cnt3_reg(cnt3_reg), 
- .cnt4_reg(cnt4_reg), 
  .addr(addr) 
  ); 
 endmodule
