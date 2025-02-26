@@ -8,7 +8,7 @@ clk,
  rnw, 
  idct_valid, 
  encnt2, 
- cnt1_reg, 
+cnt1_reg, 
 cnt2_reg, 
 cnt3_reg,  
  addr 
@@ -99,20 +99,6 @@ begin // Generate enable for cnt3.
  encnt3 <= encnt3 ; 
 end 
 always @ (posedge clk or negedge reset_n) 
-begin // Generate enable for cnt4. 
- if (reset_n == 1'b0) 
- encnt4 <= 1'b0 ; 
- else if (hold == 1'b1) 
- encnt4 <= encnt4 ; 
- else if (discnt1_next == 1'b1) 
- encnt4 <= 1'b0 ; 
- else if (cnt1_reg == 6'd35) 
-// cnt4 is enabled when cnt1_reg = 35 dec. 
- encnt4 <= 1'b1 ; 
- else 
- encnt4 <= encnt4 ; 
-end 
-always @ (posedge clk or negedge reset_n) 
 begin // Generate enable for cnt5. 
  if (reset_n == 1'b0) 
  encnt5 <= 1'b0 ; 
@@ -160,17 +146,6 @@ else
  cnt3_reg <= cnt3_reg ; 
 end 
 always @ (posedge clk or negedge reset_n) 
-begin // Realize cnt4. 
- if (reset_n == 1'b0) 
- cnt4_reg <= 6'd00 ; 
- else if (hold == 1'b1) 
- cnt4_reg <= cnt4_reg ; 
- else if (encnt4 == 1'b1) 
- cnt4_reg <= cnt4_next ; 
- else 
- cnt4_reg <= cnt4_reg ; 
-end 
-always @ (posedge clk or negedge reset_n) 
 begin // Realize "cnt5" or "addr". 
  if (reset_n == 1'b0) 
  addr <= 6'd00 ; 
@@ -200,7 +175,7 @@ begin
  // block of RAM is written. 
  end 
  else if (swrnw2) 
- rnw <= !rnw ; // Toggle after every DCTQ 
+ rnw <= !rnw ; // Toggle after every IDCT 
  // block is processed. 
  else 
  rnw <= rnw ; 
@@ -221,23 +196,23 @@ always @ (posedge clk or negedge reset_n)
 begin 
  if (reset_n == 1'b0) 
  begin 
- dctq_valid_prev <= 1'b0 ; 
- dctq_valid <= 1'b0 ; 
+ idct_valid_prev <= 1'b0 ; 
+ idct_valid <= 1'b0 ; 
  end 
  else if (hold == 1'b1) // Asserting hold clears 
  begin 
- dctq_valid <= 1'b0 ; // valid signal. 
+ idct_valid <= 1'b0 ; // valid signal. 
  end 
- else if (cnt1_reg == 6'd44) // DCTQ is valid from cnt1_reg = 44 
+ else if (cnt1_reg == 6'd44) // IDCT is valid from cnt1_reg = 44 
  // onwards. 
  begin 
- dctq_valid <= 1'b1 ; 
- dctq_valid_prev <= 1'b1 ; 
+ idct_valid <= 1'b1 ; 
+ idct_valid_prev <= 1'b1 ; 
  end 
  else if (hold == 1'b0) 
- dctq_valid <= dctq_valid_prev ; 
+ idct_valid <=idct_valid_prev ; 
  else 
- dctq_valid <= dctq_valid ; 
+ idct_valid <=idct_valid ; 
 end 
 assign start_next1 = (start == 1'b1)&&(cnt1_reg == 0) ; 
 always @ (posedge clk or negedge reset_n) 
