@@ -135,17 +135,12 @@ n1_reg1 <= n1[10] ; // Preserve sign bits and the status
 n2_reg1 <= n2[7] ; 
 n1orn2z_reg1 <= n1orn2z ; // whether result is zero or not 
 end 
-//p1_reg1, etc. means p1, etc. are registered at positive edge of clk (1), clk (2), etc. 
 assign s11a[6:0] = p1_reg1[6:1] + p2_reg1[5:0] ; 
- // LSBs are added here after left shifting 
- // p1_reg1 by one bit. 
+  
 assign s12a[6:0] = p3_reg1[6:1] + p4_reg1[5:0] ; 
 assign s13a[6:0] = p5_reg1[6:1] + p6_reg1[5:0] ; 
 assign s14a[6:0] = p7_reg1[6:1] + p8_reg1[5:0] ; 
- // Note: the left shifts are taken care of 
- // for p1, p3, p5 and p7. 
- // p1_reg1[0], etc. will be processed at the clk (2). 
- // s11a[6], etc. are the carry bits. 
+
 always @ (posedge clk) // These are the second pipeline registers @ clk (2). 
 begin 
 s11a_reg2 <= s11a ; // Store LSB partial sums. 
@@ -210,8 +205,6 @@ end
 assign s21b[6:0] = {2'b0, s11_reg4[12:9]} +s12_reg4[12:7] + s21a_reg4[7]; 
 assign s22b[6:0] = {2'b0, s13_reg4[12:9]} +s14_reg4[12:7] + s22a_reg4[7]; 
 assign s21[14:0] = {s21b[5:0], s21a_reg4[6:0], s11_reg4[1:0]} ; 
- // {MSB, LSB, [1:0]} 
-// Result will never effect s21b[6], which is always 0. 
 assign s22[14:0] = {s22b[5:0], s22a_reg4[6:0], s13_reg4[1:0]} ; 
 always @ (posedge clk) // These are the fifth pipeline registers @ clk (5). 
 begin 
@@ -252,8 +245,7 @@ begin
 if (n1orn2z_reg7 == 1'b1) 
 result[18:0] <= 19'b0 ; 
 else 
-result[18:0] <= res ; // This is the final result (product of two 
-                     // numbers) in twos complement form. 
+result[18:0] <= res ; 
 end 
 endmodule
 
