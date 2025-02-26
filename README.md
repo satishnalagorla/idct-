@@ -27,9 +27,14 @@ IDCT MAIN Module
 9. The control unit (idct_controller) manages data flow, signals, and processing synchronization.  
 10. The module efficiently reconstructs compressed image data, making it ideal for **real-time image/video processing
 
-DUAL_RAM
+DUAL_RAM Module
+
 The dual_ram module implements a dual-port RAM system with two memory banks, controlled by clock signals and a read/write enable signal. 
 It uses two instances of the ram_rc_ram1 module, where one operates in read mode while the other is in write mode, depending on the rnw signal.
 Data is written into memory based on byte enable signals and read column-wise from the stored locations.
 A delayed rnw signal ensures proper synchronization of data output selection. The ram_rc_ram1 module manages 8x64-bit memory, 
 updating values based on byte-wise control and clock synchronization.
+
+MULTIPLIER_8_8 Module
+
+This is an 8x8 signed multiplier implemented in Verilog using a pipelined approach. The inputs are two 8-bit signed numbers (n1 and n2), and the output is a 16-bit signed result. The design utilizes partial product generation, addition, and multi-stage registers for pipelining. The sign of the result is determined using XOR of input sign bits, and two’s complement is applied when needed. The input c is transposed from a dual-port ROM, which allows efficient retrieval and processing of values
